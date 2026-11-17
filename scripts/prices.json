@@ -1,0 +1,6 @@
+{
+  "_note": "USD за 1 млн токенов. ПРОВЕРЬТЕ и обновите по официальной странице цен перед финальным подсчётом. Ключ — подстрока имени модели.",
+  "opus":   {"input": 0, "output": 0, "cache_write": 0, "cache_read": 0},
+  "sonnet": {"input": 0, "output": 0, "cache_write": 0, "cache_read": 0},
+  "haiku":  {"input": 0, "output": 0, "cache_write": 0, "cache_read": 0}
+}

@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "command": "python3 hooks/session_start.py --cursor 2>/dev/null || python3 ../hooks/session_start.py --cursor",
+        "timeout": 20
+      }
+    ],
+    "postToolUse": [
+      {
+        "command": "python3 hooks/guard_sources.py --cursor 2>/dev/null || python3 ../hooks/guard_sources.py --cursor",
+        "timeout": 10
+      }
+    ],
+    "sessionEnd": [
+      {
+        "command": "python3 scripts/usage.py cursor-session 2>/dev/null || python3 ../scripts/usage.py cursor-session",
+        "timeout": 10
+      }
+    ]
+  }
+}

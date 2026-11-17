@@ -1,0 +1,28 @@
+.env
+.env.*
+.active_project
+__pycache__/
+*.tmp
+.DS_Store
+
+# Сторонние методологии с некоммерческой лицензией в репозиторий не попадают
+Next-Move-Theory-Canon/
+.claude/skills/nmt-*/
+.claude/skills/PRODUCER-CONTRACT.md
+.claude/skills/READABILITY-CONTRACT.md
+.agents/
+NextMoveTheory-README.md
+.nmt-version
+Skills-Results/
+
+*.bak
+
+# временные файлы синхронизации
+tmp/
+
+# личные заметки пользователя и рабочая копия для сравнения — не часть агента
+ГДЕ_ЧТО_ХРАНИТСЯ.md
+projects/megakino-bench/
+
+# тексты отзывов для замера каскада не публикуем
+bench/cascade/data/
