@@ -44,7 +44,8 @@ _Команда ДГТУ · MGIMO AI Challenge × МегаФон, задание
 
 **Проверить, что всё на месте** (в терминале Cursor, **⌃ `**):
 ```
-python3 scripts/ledger.py list        # проекты
+python3 scripts/ledger.py list        # проекты; демо по умолчанию — projects/DEFAULT
+python3 scripts/ledger.py use megakino-retention   # открыть демо явно
 python3 scripts/ledger.py validate    # проверка реестра активного проекта
 python3 scripts/passport.py           # паспорт решения
 ```
@@ -79,7 +80,7 @@ python3 scripts/passport.py           # паспорт решения
    (`projects/*/sources`, `ledger.json`), состояние (`projects/*/state.md`).
 4. **Субагенты** в отдельном контексте и в режиме только чтения: `researcher` (поиск), `red-team`
    (возражения — не защищает собственные варианты), `auditor` (сверка с источниками), `persona`
-   (модельные респонденты, всегда с меткой СИНТЕТИКА).
+   (модельные респонденты, всегда с меткой СИНТЕТИКА), `classifier` (массовая разметка на дешёвой модели).
 5. **Хуки** (`.cursor/hooks.json`, `.claude/settings.json` — Cursor читает оба): восстановление
    контекста при старте сессии, защита от команд в источниках, учёт токенов и модели после каждого
    ответа агента (`costs/cursor-turns.jsonl`).

@@ -22,9 +22,16 @@ ACTIVE = ROOT / ".active_project"
 
 
 def _fallback_project(projects_dir):
-    """Если .active_project нет (свежая копия репозитория): берём проект с самым свежим реестром."""
+    """Если .active_project нет (свежая копия репозитория): проект из projects/DEFAULT (демо для первого
+    запуска), иначе — с самым свежим реестром; замеры (*-bench) и шаблоны (_*) не выбираются."""
+    default = projects_dir / "DEFAULT"
+    if default.exists():
+        name = default.read_text(encoding="utf-8").strip()
+        if name and (projects_dir / name / "ledger.json").exists():
+            return name
     cands = [d for d in projects_dir.iterdir()
-             if d.is_dir() and not d.name.startswith("_") and (d / "ledger.json").exists()]
+             if d.is_dir() and not d.name.startswith("_") and not d.name.endswith("-bench")
+             and (d / "ledger.json").exists()]
     if not cands:
         return None
     return max(cands, key=lambda d: (d / "ledger.json").stat().st_mtime).name
