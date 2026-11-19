@@ -19,6 +19,15 @@
    unit-cost — переменные затраты на клиента в месяц (например, доля партнёров), ₽
    Формула: допустимое изменение числа клиентов = (old − c) / (new − c) − 1.
 
+3) Разрыв до цели: сколько единиц дополнительной прибыли нужно, чтобы закрыть разрыв (и покрыть новые
+   прямые расходы), и сколько это на одного клиента.
+     python3 scripts/breakeven.py gap --gap 6000000 --unit 500 --costs 0,1500000 --clients 2000,5000
+   gap      — разрыв прибыли до цели, ₽ (например, цель 285 − без изменений 279 млн = 6 млн)
+   unit     — прибыль за единицу (например, 500 ₽ за дополнительный оплаченный месяц номера)
+   costs    — новые прямые расходы за тот же период, ₽ (необязательно)
+   clients  — сколько клиентов получат услугу (необязательно: для ответа «месяцев на клиента»)
+   Формула: нужно единиц = (gap + costs) / unit.
+
 Добавьте --json, чтобы получить строки результата для model_result.json проекта.
 """
 import argparse
@@ -53,6 +62,8 @@ def main():
     r.add_argument("--margin", required=True); r.add_argument("--churn"); r.add_argument("--json", action="store_true")
     p = sp.add_parser("price"); p.add_argument("--old", required=True); p.add_argument("--new", required=True)
     p.add_argument("--unit-cost", required=True); p.add_argument("--json", action="store_true")
+    g = sp.add_parser("gap"); g.add_argument("--gap", required=True); g.add_argument("--unit", required=True)
+    g.add_argument("--costs", default="0"); g.add_argument("--clients"); g.add_argument("--json", action="store_true")
     a = ap.parse_args()
 
     rows = []
@@ -70,6 +81,20 @@ def main():
             rng = f"{lo:.1%}" if abs(hi - lo) < 1e-9 else f"{lo:.1%}–{hi:.1%}"
             print(f"\nОкупается, если отток снизится на {rng} относительно."
                   + (" Больше 100% — не окупается ни при каком удержании." if hi > 1 else ""))
+    elif a.mode == "gap":
+        cl = nums(a.clients) if a.clients else [None]
+        for gp, un, co, c in itertools.product(nums(a.gap), nums(a.unit), nums(a.costs), cl):
+            need = (gp + co) / un
+            rows.append({"gap": gp, "unit": un, "costs": co, "units_needed": need, "clients": c,
+                         "per_client": need / c if c else None})
+        if not a.json:
+            print("| разрыв, ₽ | прибыль за единицу, ₽ | новые расходы, ₽ | нужно единиц | клиентов | единиц на клиента |")
+            print("|---|---|---|---|---|---|")
+            for x in rows:
+                pc = f"{x['per_client']:.2f} | " if x["per_client"] is not None else ""
+                c = f"{x['clients']:,.0f} | " if x["clients"] else "— | "
+                print(f"| {x['gap']:,.0f} | {x['unit']:,.0f} | {x['costs']:,.0f} | {x['units_needed']:,.0f} | {c}{pc or '— |'}")
+            print("\nЕсли единиц на клиента больше, чем месяцев услуги в плановом году, цель этой услугой не достигается.")
     else:
         for o, n, u in itertools.product(nums(a.old), nums(a.new), nums(a.unit_cost)):
             rows.append(price(o, n, u))
