@@ -26,7 +26,13 @@
    unit     — прибыль за единицу (например, 500 ₽ за дополнительный оплаченный месяц номера)
    costs    — новые прямые расходы за тот же период, ₽ (необязательно)
    clients  — сколько клиентов получат услугу (необязательно: для ответа «месяцев на клиента»)
-   Формула: нужно единиц = (gap + costs) / unit.
+   Формула: нужно единиц = (gap + costs) / unit. В costs — только новые прямые расходы года; разработка — в payback.
+
+4) Окупаемость разработки: по кварталам — дополнительная прибыль после прямых расходов; в каком квартале
+   накопленная сумма покроет вложения, и какую сумму вложений вернёт весь горизонт.
+     python3 scripts/breakeven.py payback --quarterly 0,250000,900000,1500000 --invest 2000000,3000000
+   quarterly — дополнительная прибыль по кварталам после прямых расходов, ₽ (через запятую, по порядку)
+   invest    — вложения в разработку, ₽ (необязательно: без него — только предельная сумма за горизонт)
 
 Добавьте --json, чтобы получить строки результата для model_result.json проекта.
 """
@@ -64,6 +70,8 @@ def main():
     p.add_argument("--unit-cost", required=True); p.add_argument("--json", action="store_true")
     g = sp.add_parser("gap"); g.add_argument("--gap", required=True); g.add_argument("--unit", required=True)
     g.add_argument("--costs", default="0"); g.add_argument("--clients"); g.add_argument("--json", action="store_true")
+    pb = sp.add_parser("payback"); pb.add_argument("--quarterly", required=True); pb.add_argument("--invest")
+    pb.add_argument("--json", action="store_true")
     a = ap.parse_args()
 
     rows = []
@@ -81,6 +89,24 @@ def main():
             rng = f"{lo:.1%}" if abs(hi - lo) < 1e-9 else f"{lo:.1%}–{hi:.1%}"
             print(f"\nОкупается, если отток снизится на {rng} относительно."
                   + (" Больше 100% — не окупается ни при каком удержании." if hi > 1 else ""))
+    elif a.mode == "payback":
+        q = nums(a.quarterly)
+        cum, acc = [], 0.0
+        for v in q:
+            acc += v; cum.append(acc)
+        for inv in (nums(a.invest) if a.invest else [None]):
+            back = next((i + 1 for i, c in enumerate(cum) if inv is not None and c >= inv), None)
+            rows.append({"invest": inv, "cumulative": cum, "payback_quarter": back, "max_invest": cum[-1] if cum else 0})
+        if not a.json:
+            print("| квартал | доп. прибыль, ₽ | накоплено, ₽ |")
+            print("|---|---|---|")
+            for i, (v, c) in enumerate(zip(q, cum)):
+                print(f"| {i + 1} | {v:,.0f} | {c:,.0f} |")
+            print(f"\nЗа {len(q)} кв. вернётся не больше {cum[-1]:,.0f} ₽ вложений (предельная сумма).")
+            for x in rows:
+                if x["invest"] is not None:
+                    print(f"Вложения {x['invest']:,.0f} ₽: " + (f"окупаются в {x['payback_quarter']}-м квартале."
+                          if x["payback_quarter"] else "за горизонт не окупаются."))
     elif a.mode == "gap":
         cl = nums(a.clients) if a.clients else [None]
         for gp, un, co, c in itertools.product(nums(a.gap), nums(a.unit), nums(a.costs), cl):
